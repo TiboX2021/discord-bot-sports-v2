@@ -34,6 +34,71 @@ def parse_keyword(s: str, prefix: str) -> str | None:
     return s[index:end_index].lower()  # lowercase for easier matching
 
 
+def next_alpha(s: str, begin: int) -> int:
+    """Returns the index of the next alphabet letter in s.
+    If the end of string is reached, returns -1.
+    Index begin is not included."""
+
+    i = begin + 1
+
+    if i >= len(s):
+        return -1
+
+    while not s[i].isalpha():
+        i += 1
+        if i == len(s):
+            return -1
+    return i
+
+
+def next_end_of_word(s: str, begin: int) -> int:
+    """Returns the next index of the first character that is not a letter.
+    If the end of the string is reached, returns -1"""
+    assert s[begin].isalpha(), "Error : the starting char is not a letter"
+
+    i = begin + 1
+    while s[i].isalpha():
+        i += 1
+        if i == len(s):
+            return -1
+    return i
+
+
+def scan_next_word(s: str, begin: int) -> tuple[str | None, int]:
+    """Returns the next word after s[begin] char, not included. Returns None if none was found.
+    Also returns the index of the words' last char"""
+    begin = next_alpha(s, begin)
+
+    if begin == -1:
+        return None, -1
+
+    end = next_end_of_word(s, begin)
+
+    return (s[begin:len(s)], len(s) - 1) if end == -1 else (s[begin:end], end - 1)
+
+
+def parse_keywords(s: str, prefix: str, n: int = 1) -> [str]:
+    """parse_keyword, but returns the 'n' following words"""
+
+    # Searching for the prefix
+    index = s.find(prefix)
+
+    if index == -1:  # No prefix found
+        return []
+
+    # Scanning next words
+    out = []
+    end = index
+
+    for i in range(n):
+        word, end = scan_next_word(s, end)
+        if word is None:
+            return out
+
+        out.append(word)
+    return out
+
+
 def value_count(history: dict[str, str]) -> dict[str, int]:
     """Counts all value in the dict
     @:returns dict[value: str, count: int]"""
@@ -59,7 +124,7 @@ def summary_msg(history: dict[str, str], values: set[str]) -> str:
 
     for value in values:
         if value in counts:
-            msg += f"{value} : {counts[value]}   ({int(1000) * counts[value] / (sum_count * 10) if sum_count != 0 else 0}%)\n"
+            msg += f"{value} : {counts[value]}   ({int(1000 * counts[value] / sum_count) / 10 if sum_count != 0 else 0}%)\n"
         else:
             msg += f"{value} : 0   (0.0%)\n"
 
@@ -74,3 +139,11 @@ if __name__ == "__main__":
     test_str = "ex : 1)/ - sport I chose"
 
     print(parse_keyword(s=test_str, prefix='1'))
+
+    test_str_2 = "ex : 1)/ foot le hand truc"
+
+    print(parse_keywords(test_str_2, '1', 3))
+
+    test_str_3 = "ex : 1 truc"
+
+    print(parse_keywords(test_str_3, '1', 10))
