@@ -72,10 +72,13 @@ class Tracker:
         self.history = self.history | new_votes  # merge votes. new_votes overwrite old votes
         self.last_comment_date = new_comment_date
 
-    async def on_message(self, message: discord.Message):
-        """Called each time a message is posted"""
+    async def on_message(self, message: discord.Message) -> bool:
+        """Called each time a message is posted
+        @:returns True if something changed"""
         if message.channel.id not in self.channel_ids:
-            return
+            return False
+
+        something_changed = False
 
         keyword = parse_keyword(message.content, prefix='1')
         if keyword is not None:
@@ -83,10 +86,12 @@ class Tracker:
 
             if value is not None:
                 # Add or overwrite value for this user
+                something_changed = True
                 self.history[str(message.author.id)] = value
 
         # Update last date
         self.last_comment_date = message.created_at
+        return something_changed
 
     async def on_exit(self):
         """Save data and quit"""

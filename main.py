@@ -1,11 +1,9 @@
 """
 Python discord sport counter bot v3
 @author: Thibaut de Saivre
-
-todo : bot edits its own comment
-todo : bot does not read comment history correctly
 """
 import discord
+import dotenv
 from dotenv import load_dotenv  # Get secret unique bot token from config file
 from discord.ext import commands  # discord.py API
 import os
@@ -48,11 +46,13 @@ if __name__ == '__main__':
     DEBUG_CONV_ID = int(os.getenv("DEBUG_CONV"))
     DEUX_SPORTS_PREFERES_ID = int(os.getenv("DEUX_SPORTS_PREFERES"))
     AUTHOR_ID = int(os.getenv("AUTHOR_ID"))
+    work_channel = DEBUG_CONV_ID
+    SUMMARY_MSG_ID = 0
 
     bot = commands.Bot(command_prefix='!')
 
     # Trackers
-    sport_tracker = Tracker(channel_ids=[DEBUG_CONV_ID], data_file_path="sport_tracker_data.json",
+    sport_tracker = Tracker(channel_ids=[work_channel], data_file_path="sport_tracker_data.json",
                             keywords_to_values=multi_key_dict(sports))
 
 
@@ -60,12 +60,27 @@ if __name__ == '__main__':
     async def on_message(message: discord.Message):
         await bot.process_commands(message)  # on_message overrides all @bot.command()
 
-        await sport_tracker.on_message(message)
+        update = False
+        update = update or await sport_tracker.on_message(message)
+
+        if update:
+            channel: discord.GroupChannel = bot.get_channel(work_channel)
+            message = await channel.fetch_message(SUMMARY_MSG_ID)
+            await message.edit(content='edited!')
 
 
     @bot.event
     async def on_ready():
+        global SUMMARY_MSG_ID
         print("bot ready")
+
+        # Create summary comment
+        if str(work_channel) not in os.environ:
+            # TODO : create comment and get ID -> set the id to the env.
+            message = await bot.get_channel(work_channel).send("message originel")
+            dotenv.set_key('config', str(work_channel), str(message.id))
+
+        SUMMARY_MSG_ID = int(os.getenv(str(work_channel)))
         await sport_tracker.on_startup(bot)
 
 
