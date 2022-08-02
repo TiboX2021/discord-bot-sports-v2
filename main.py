@@ -3,8 +3,7 @@ Python discord sport counter bot v3
 @author: Thibaut de Saivre
 """
 import discord
-import dotenv
-from dotenv import load_dotenv  # Get secret unique bot token from config file
+import dotenv  # Get secret unique bot token from config file
 from discord.ext import commands  # discord.py API
 import os
 from tracker import Tracker
@@ -55,9 +54,8 @@ BOTTOM = (
 
 if __name__ == '__main__':
 
-    load_dotenv(dotenv_path='config')  # Loading config file data
+    dotenv.load_dotenv(dotenv_path='config')  # Loading config file data
     DEBUG_CONV_ID = int(os.getenv("DEBUG_CONV"))
-    DEUX_SPORTS_PREFERES_ID = int(os.getenv("DEUX_SPORTS_PREFERES"))
     AUTHOR_ID = int(os.getenv("AUTHOR_ID"))
     work_channel = int(os.getenv("CHANNEL"))
     SUMMARY_MSG_ID = 0
@@ -70,6 +68,7 @@ if __name__ == '__main__':
 
 
     async def update_message():
+        """Update the bot pinned message"""
         channel: discord.GroupChannel = bot.get_channel(work_channel)
         message = await channel.fetch_message(SUMMARY_MSG_ID)
 
@@ -77,7 +76,7 @@ if __name__ == '__main__':
         await message.edit(content=new_content)
 
 
-    @bot.event
+    @bot.event  # Called each time someone comments (on the specific channel)
     async def on_message(message: discord.Message):
         await bot.process_commands(message)  # on_message overrides all @bot.command()
 
@@ -88,7 +87,7 @@ if __name__ == '__main__':
             await update_message()
 
 
-    @bot.event
+    @bot.event  # Called when the bot is connected and ready
     async def on_ready():
         global SUMMARY_MSG_ID
         print("bot ready")
