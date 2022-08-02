@@ -24,8 +24,12 @@ def parse_keyword(s: str, prefix: str) -> str | None:
 
     # Find end of word
     end_index = index + 1
-    while end_index < length - 1 and s[end_index].isalpha():
+    while s[end_index].isalpha():
+
         end_index += 1
+
+        if end_index == length:
+            break
 
     return s[index:end_index].lower()  # lowercase for easier matching
 
@@ -54,7 +58,7 @@ def summary_msg(history: dict[str, str], values: set[str]) -> str:
     msg = ""
 
     for value in values:
-        if value in sum_count:
+        if value in counts:
             msg += f"{value} : {counts[value]}   ({int(1000) * counts[value] / (sum_count * 10) if sum_count != 0 else 0}%)\n"
         else:
             msg += f"{value} : 0   (0.0%)\n"

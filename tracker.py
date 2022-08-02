@@ -70,14 +70,19 @@ class Tracker:
             if messages[0].created_at > new_comment_date:
                 new_comment_date = messages[0].created_at
 
+            print(len(messages), "messages loaded")
+
         self.history = self.history | new_votes  # merge votes. new_votes overwrite old votes
         self.last_comment_date = new_comment_date
 
     async def on_message(self, message: discord.Message) -> bool:
         """Called each time a message is posted
         @:returns True if something changed"""
+
         if message.channel.id not in self.channel_ids:
             return False
+
+        print("new comment")
 
         something_changed = False
 
