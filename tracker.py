@@ -27,6 +27,7 @@ class Tracker:
 
         # keywords
         self.keywords_to_values = keywords_to_values
+        self.values = set(self.keywords_to_values.values())
 
     def read_data(self):
         """Reading data from data file"""
@@ -102,6 +103,6 @@ class Tracker:
         file.close()
 
         print("one tracker exited")
-        
+
     def summary_msg(self) -> str:
-        return summary_msg(self.history)
+        return summary_msg(self.history, self.values)

@@ -44,7 +44,7 @@ def value_count(history: dict[str, str]) -> dict[str, int]:
     return out
 
 
-def summary_msg(history: dict[str, str]) -> str:
+def summary_msg(history: dict[str, str], values: set[str]) -> str:
     """Returns a summary message of the value count
     for the bot to display"""
 
@@ -53,8 +53,11 @@ def summary_msg(history: dict[str, str]) -> str:
 
     msg = ""
 
-    for value, count in counts.items():
-        msg += f"{value} : {count}   ({int(1000) * count / (sum_count * 10) if sum_count != 0 else 0}%)\n"
+    for value in values:
+        if value in history:
+            msg += f"{value} : {count}   ({int(1000) * count / (sum_count * 10) if sum_count != 0 else 0}%)\n"
+        else:
+            msg += f"{value} : 0   (0.0%)\n"
 
     msg += f"\nTOTAL : {sum_count}\n"
 
