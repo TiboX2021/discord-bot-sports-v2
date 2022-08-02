@@ -40,6 +40,19 @@ def multi_key_dict(d: dict) -> dict:
     return out
 
 
+HEADER = "**Résultats :**\n"
+
+BOTTOM = (
+    "**Quelques infos sur mon fonctionnement :**\n"
+    "   ⦁ Tant que je suis connecté, ce message sera mis à jour à chaque nouveau message\n"
+    "   ⦁ Pour que je compte ton choix, il suffit que tu mette '1' suivi de ton sport "
+    "n'importe où dans un message.\n"
+    "   ⦁ Je reconnais plusieurs mots-clés pour chaque sport\n"
+    "   ⦁ La capitalisation n'a pas d'importance\n"
+    "   ⦁ Je retiens uniquement les derniers choix pour chaque personne\n"
+    "*Exemple : '1) badminton', 'azerty 1 - bad', 'j'aime le 1 bad' sont valides*"
+)
+
 if __name__ == '__main__':
 
     load_dotenv(dotenv_path='config')  # Loading config file data
@@ -56,6 +69,14 @@ if __name__ == '__main__':
                             keywords_to_values=multi_key_dict(sports))
 
 
+    async def update_message():
+        channel: discord.GroupChannel = bot.get_channel(work_channel)
+        message = await channel.fetch_message(SUMMARY_MSG_ID)
+
+        new_content = HEADER + '\n' + sport_tracker.summary_msg() + '\n' + BOTTOM
+        await message.edit(content=new_content)
+
+
     @bot.event
     async def on_message(message: discord.Message):
         await bot.process_commands(message)  # on_message overrides all @bot.command()
@@ -64,9 +85,7 @@ if __name__ == '__main__':
         update = update or await sport_tracker.on_message(message)
 
         if update:
-            channel: discord.GroupChannel = bot.get_channel(work_channel)
-            message = await channel.fetch_message(SUMMARY_MSG_ID)
-            await message.edit(content='edited!')
+            await update_message()
 
 
     @bot.event
@@ -76,12 +95,13 @@ if __name__ == '__main__':
 
         # Create summary comment
         if str(work_channel) not in os.environ:
-            # TODO : create comment and get ID -> set the id to the env.
             message = await bot.get_channel(work_channel).send("message originel")
             dotenv.set_key('config', str(work_channel), str(message.id))
 
         SUMMARY_MSG_ID = int(os.getenv(str(work_channel)))
         await sport_tracker.on_startup(bot)
+
+        await update_message()
 
 
     @bot.command()

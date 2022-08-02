@@ -30,6 +30,37 @@ def parse_keyword(s: str, prefix: str) -> str | None:
     return s[index:end_index].lower()  # lowercase for easier matching
 
 
+def value_count(history: dict[str, str]) -> dict[str, int]:
+    """Counts all value in the dict
+    @:returns dict[value: str, count: int]"""
+    out: dict[str, int] = {}
+
+    for value in history.values():
+        if value in out:
+            out[value] += 1
+        else:
+            out[value] = 1
+
+    return out
+
+
+def summary_msg(history: dict[str, str]) -> str:
+    """Returns a summary message of the value count
+    for the bot to display"""
+
+    counts = value_count(history)
+    sum_count = sum(counts.values())
+
+    msg = ""
+
+    for value, count in counts.items():
+        msg += f"{value} : {count}   ({int(1000) * count / (sum_count * 10) if sum_count != 0 else 0}%)\n"
+
+    msg += f"\nTOTAL : {sum_count}\n"
+
+    return msg
+
+
 if __name__ == "__main__":
     # Testing
 

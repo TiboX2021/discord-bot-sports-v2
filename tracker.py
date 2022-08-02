@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 import discord
 from discord.ext import commands
-from parser import parse_keyword
+from parser import parse_keyword, summary_msg
 
 date_format = '%d/%m/%Y %H:%M:%S'  # jj/mm/yyy hh:mm:ss
 
@@ -102,3 +102,6 @@ class Tracker:
         file.close()
 
         print("one tracker exited")
+        
+    def summary_msg(self) -> str:
+        return summary_msg(self.history)
