@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 import discord
 from discord.ext import commands
+from parser import parse_keyword
 
 date_format = '%d/%m/%Y %H:%M:%S'  # jj/mm/yyy hh:mm:ss
 
@@ -15,22 +16,17 @@ class Data(TypedDict):
 
 class Tracker:
 
-    def __init__(self, channel_ids: list[int], data_file_path: str):
+    def __init__(self, channel_ids: list[int], data_file_path: str, keywords_to_values: dict[str, str]):
         self.channel_ids = channel_ids  # channels to monitor
 
         # Loading data
         self.data_file_path = data_file_path
         self.last_comment_date = datetime(2022, 1, 1)  # default date
-        self.history: dict[str, int] = {}
+        self.history: dict[str, str] = {}
         self.read_data()
 
-    def __del__(self):
-        """Destructor: write data collected in data file"""
-        new_data = {'history': self.history, 'data': self.last_comment_date.strftime(date_format)}
-
-        file = open(self.data_file_path, 'w')
-        file.write(json.dumps(new_data))
-        file.close()
+        # keywords
+        self.keywords_to_values = keywords_to_values
 
     def read_data(self):
         """Reading data from data file"""
@@ -51,16 +47,23 @@ class Tracker:
         """Called when the bot is ready"""
         new_comment_date = self.last_comment_date  # Update last comment date after processing
 
-        new_votes: dict[str, int] = {}
+        new_votes: dict[str, str] = {}
 
         for channel_id in self.channel_ids:
             channel = bot.get_channel(channel_id)
 
-            messages: list[discord.Message] = channel.history(after=self.last_comment_date).flatten()
+            messages: list[discord.Message] = await channel.history(after=self.last_comment_date).flatten()
             for message in messages:
-                # TODO : check all first votes in the history.
-                # TODO : then merge with old votes. (use another function?)
-                pass
+
+                author_id = str(message.author.id)
+                if author_id not in new_votes:  # Latest comment of this author is the first encountered
+                    keyword = parse_keyword(message.content, prefix='1')
+
+                    if keyword is not None:  # at this point, it is not garanteed that the 'keyword' is valid
+                        value = self.keywords_to_values.get(keyword)
+
+                        if value is not None:
+                            new_votes[author_id] = value
 
             if messages[0].created_at > new_comment_date:
                 new_comment_date = messages[0].created_at
@@ -73,7 +76,25 @@ class Tracker:
         if message.channel.id not in self.channel_ids:
             return
 
-        # TODO
+        keyword = parse_keyword(message.content, prefix='1')
+        if keyword is not None:
+            value = self.keywords_to_values.get(keyword)
+
+            if value is not None:
+                # Add or overwrite value for this user
+                self.history[str(message.author.id)] = value
 
         # Update last date
         self.last_comment_date = message.created_at
+
+        print("comment date updated", self.last_comment_date.strftime(date_format))
+
+    async def on_exit(self):
+        """Save data and quit"""
+        new_data = {'history': self.history, 'date': self.last_comment_date.strftime(date_format)}
+
+        file = open(self.data_file_path, 'w')
+        file.write(json.dumps(new_data, sort_keys=True, indent=4))
+        file.close()
+
+        print("one tracker exited")
