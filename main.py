@@ -59,7 +59,7 @@ if __name__ == '__main__':
     DEBUG_CONV_ID = int(os.getenv("DEBUG_CONV"))
     DEUX_SPORTS_PREFERES_ID = int(os.getenv("DEUX_SPORTS_PREFERES"))
     AUTHOR_ID = int(os.getenv("AUTHOR_ID"))
-    work_channel = DEBUG_CONV_ID
+    work_channel = int(os.getenv("CHANNEL"))
     SUMMARY_MSG_ID = 0
 
     bot = commands.Bot(command_prefix='!')
