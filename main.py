@@ -2,7 +2,8 @@
 Python discord sport counter bot v3
 @author: Thibaut de Saivre
 
-todo : il faut associer des keywords à un sport de sortie, un index. voir comment faire ça propremment
+todo : bot edits its own comment
+todo : bot does not read comment history correctly
 """
 import discord
 from dotenv import load_dotenv  # Get secret unique bot token from config file
@@ -81,10 +82,7 @@ if __name__ == '__main__':
             await context.channel.send("au revoir!")
             await sport_tracker.on_exit()
 
-            try:
-                await bot.logout()
-            except RuntimeError:  # always happens on standard exit
-                print("bot exited")
+            await bot.close()  # throws a RuntimeError, this is normal
 
 
     bot.run(os.getenv("TOKEN"))  # Start bot with secret token

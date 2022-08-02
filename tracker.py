@@ -57,6 +57,7 @@ class Tracker:
 
                 author_id = str(message.author.id)
                 if author_id not in new_votes:  # Latest comment of this author is the first encountered
+
                     keyword = parse_keyword(message.content, prefix='1')
 
                     if keyword is not None:  # at this point, it is not garanteed that the 'keyword' is valid
@@ -68,7 +69,7 @@ class Tracker:
             if messages[0].created_at > new_comment_date:
                 new_comment_date = messages[0].created_at
 
-        self.history = new_votes | self.history  # merge votes. new_votes overwrite old votes
+        self.history = self.history | new_votes  # merge votes. new_votes overwrite old votes
         self.last_comment_date = new_comment_date
 
     async def on_message(self, message: discord.Message):
@@ -86,8 +87,6 @@ class Tracker:
 
         # Update last date
         self.last_comment_date = message.created_at
-
-        print("comment date updated", self.last_comment_date.strftime(date_format))
 
     async def on_exit(self):
         """Save data and quit"""

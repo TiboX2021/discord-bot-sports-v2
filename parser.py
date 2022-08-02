@@ -27,7 +27,7 @@ def parse_keyword(s: str, prefix: str) -> str | None:
     while end_index < length - 1 and s[end_index].isalpha():
         end_index += 1
 
-    return s[index:end_index]
+    return s[index:end_index].lower()  # lowercase for easier matching
 
 
 if __name__ == "__main__":
