@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 import discord
 from discord.ext import commands
-from parser import parse_keyword, summary_msg, parse_keywords
+from parser import is_X22, summary_msg, parse_keywords
 
 date_format = '%d/%m/%Y %H:%M:%S'  # jj/mm/yyy hh:mm:ss
 
@@ -57,7 +57,8 @@ class Tracker:
             for message in messages:
 
                 author_id = str(message.author.id)
-                if author_id not in new_votes:  # Latest comment of this author is the first encountered
+                # Latest comment of this author is the first encountered
+                if is_X22(message.author) and author_id not in new_votes:
 
                     # keyword = parse_keyword(message.content, prefix='1')
                     keywords = parse_keywords(message.content, prefix='1', n=3)
@@ -83,7 +84,7 @@ class Tracker:
         """Called each time a message is posted
         @:returns True if something changed"""
 
-        if message.channel.id not in self.channel_ids:
+        if message.channel.id not in self.channel_ids or not is_X22(message.author):
             return False
 
         print("new comment")

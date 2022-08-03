@@ -1,6 +1,13 @@
 """
 Find the first keyword following a prefix
 """
+import discord
+
+
+def is_X22(member: discord.Member) -> bool:
+    roles = [role.name for role in member.roles]
+
+    return 'X22' in roles and not 'X21' in roles
 
 
 def parse_keyword(s: str, prefix: str) -> str | None:
@@ -95,7 +102,7 @@ def parse_keywords(s: str, prefix: str, n: int = 1) -> [str]:
         if word is None:
             return out
 
-        out.append(word)
+        out.append(word.lower())
     return out
 
 
