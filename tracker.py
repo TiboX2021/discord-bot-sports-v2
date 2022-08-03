@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 import discord
 from discord.ext import commands
-from parser import parse_keyword, summary_msg
+from parser import parse_keyword, summary_msg, parse_keywords
 
 date_format = '%d/%m/%Y %H:%M:%S'  # jj/mm/yyy hh:mm:ss
 
@@ -59,13 +59,17 @@ class Tracker:
                 author_id = str(message.author.id)
                 if author_id not in new_votes:  # Latest comment of this author is the first encountered
 
-                    keyword = parse_keyword(message.content, prefix='1')
-
+                    # keyword = parse_keyword(message.content, prefix='1')
+                    keywords = parse_keywords(message.content, prefix='1', n=3)
+                    value = self.first_value(keywords)
+                    if value is not None:
+                        new_votes[author_id] = value
+                    """
                     if keyword is not None:  # at this point, it is not garanteed that the 'keyword' is valid
-                        value = self.keywords_to_values.get(keyword)
-
-                        if value is not None:
+                       value = self.keywords_to_values.get(keyword)
+                       if value is not None:
                             new_votes[author_id] = value
+                    """
 
             if messages[0].created_at > new_comment_date:
                 new_comment_date = messages[0].created_at
@@ -86,7 +90,15 @@ class Tracker:
 
         something_changed = False
 
-        keyword = parse_keyword(message.content, prefix='1')
+        # keyword = parse_keyword(message.content, prefix='1')
+        keywords = parse_keywords(message.content, prefix='1', n=3)
+        value = self.first_value(keywords)
+        if value is not None:
+            # Add or overwrite value for this user
+            something_changed = True
+            self.history[str(message.author.id)] = value
+
+        """
         if keyword is not None:
             value = self.keywords_to_values.get(keyword)
 
@@ -94,7 +106,7 @@ class Tracker:
                 # Add or overwrite value for this user
                 something_changed = True
                 self.history[str(message.author.id)] = value
-
+        """
         # Update last date
         self.last_comment_date = message.created_at
         return something_changed
@@ -111,3 +123,19 @@ class Tracker:
 
     def summary_msg(self) -> str:
         return summary_msg(self.history, self.values)
+
+    def first_value(self, keywords: list[str]) -> str | None:
+        """Find the first valid value in a list of keywords"""
+
+        if len(keywords) == 0:
+            return None
+
+        # Find the first valid keyword
+        i = 0
+        while i < len(keywords) and keywords[i] not in self.keywords_to_values:
+            i += 1
+
+        if i == len(keywords):  # No valid value
+            return None
+
+        return self.keywords_to_values[keywords[i]]
